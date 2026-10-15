@@ -1,0 +1,16 @@
+{
+  "name": "webtoon-lab",
+  "version": "1.0.0",
+  "description": "내 인생 웹툰 TOP 5 연구소 iOS App",
+  "main": "www/index.html",
+  "scripts": {
+    "build": "echo 'Static build ready'"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/ios": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0"
+  }
+}

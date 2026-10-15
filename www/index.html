@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <!-- 아이폰 14 노치 대응(viewport-fit=cover) 및 입력창 터치 시 강제 확대 방지 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  
+  <!-- iOS PWA 전용 풀스크린 앱 설정 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="웹툰연구소">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <title>내 인생 웹툰 TOP 5 연구소</title>
+  
+  <!-- 아이폰 홈 화면 아이콘 & PWA 매니페스트 자동 생성 스크립트 -->
+  <script>
+    (function() {
+      try {
+        // 캔버스로 고해상도(512x512) 앱 아이콘 즉석 생성
+        var canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        var ctx = canvas.getContext('2d');
+
+        // 배경 그라데이션 (보라색 ~ 인디고)
+        var grad = ctx.createLinearGradient(0, 0, 512, 512);
+        grad.addColorStop(0, '#7e22ce');
+        grad.addColorStop(1, '#1e1b4b');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 512, 512);
+
+        // 장식용 네온 원
+        ctx.strokeStyle = 'rgba(168, 85, 247, 0.35)';
+        ctx.lineWidth = 16;
+        ctx.beginPath();
+        ctx.arc(256, 256, 200, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 중앙 텍스트 및 트로피 심볼
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 150px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.fillText('🏆', 256, 205);
+
+        ctx.font = '900 72px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.fillStyle = '#f3e8ff';
+        ctx.fillText('TOP 5', 256, 365);
+
+        var iconUrl = canvas.toDataURL('image/png');
+
+        // iOS 홈 화면 아이콘 태그 등록
+        var appleIcon = document.createElement('link');
+        appleIcon.rel = 'apple-touch-icon';
+        appleIcon.href = iconUrl;
+        document.head.appendChild(appleIcon);
+
+        var favIcon = document.createElement('link');
+        favIcon.rel = 'icon';
+        favIcon.type = 'image/png';
+        favIcon.href = iconUrl;
+        document.head.appendChild(favIcon);
+
+        // PWA Web App Manifest 동적 삽입
+        var manifest = {
+          name: "내 인생 웹툰 TOP 5 연구소",
+          short_name: "웹툰연구소",
+          start_url: ".",
+          display: "standalone",
+          background_color: "#0a0a0a",
+          theme_color: "#0a0a0a",
+          orientation: "portrait",
+          icons: [
+            {
+              src: iconUrl,
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "any maskable"
+            }
+          ]
+        };
+        var manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+        var manifestLink = document.createElement('link');
+        manifestLink.rel = 'manifest';
+        manifestLink.href = URL.createObjectURL(manifestBlob);
+        document.head.appendChild(manifestLink);
+      } catch (e) {
+        console.error('PWA Icon generation error:', e);
+      }
+    })();
+  </script>
+
+  <!-- Pretendard 한글 폰트 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18 & ReactDOM CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel Standalone (JSX 컴파일용) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    :root {
+      --sat: env(safe-area-inset-top, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+    }
+    body {
+      background-color: #0a0a0a;
+      color: #f5f5f5;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      /* 아이폰 14 하단 홈 바 안전 영역 확보 */
+      padding-bottom: calc(var(--sab) + 16px);
+      /* iOS 터치 하이라이트 및 당겨서 새로고침 바운스 최소화 */
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-y: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    /* 입력창은 텍스트 선택 허용 및 iOS 사파리 자동 줌인 방지(16px 이상 강제) */
+    input, textarea, select {
+      user-select: text;
+      -webkit-user-select: text;
+      font-size: 16px !important;
+    }
+    /* 아이폰 상단 노치 영역 패딩 유틸리티 */
+    .ios-safe-header {
+      padding-top: max(var(--sat), 12px);
+    }
+    /* 커스텀 스크롤바 */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #171717;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #3f3f46;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-neutral-950 text-neutral-100 antialiased selection:bg-purple-600 selection:text-white">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // Lucide Icons SVG 헬퍼 컴포넌트
+    const createIcon = (paths) => ({ className = "w-4 h-4", ...props }) => (
+      <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        className={className} 
+        {...props}
+      >
+        {paths}
+      </svg>
+    );
+
+    const Trophy = createIcon(
+      <>
+        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+        <path d="M4 22h16" />
+        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+      </>
+    );
+
+    const Sparkles = createIcon(
+      <>
+        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+        <path d="M5 3v4" />
+        <path d="M19 17v4" />
+        <path d="M3 5h4" />
+        <path d="M17 19h4" />
+      </>
+    );
+
+    const Edit3 = createIcon(
+      <>
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+      </>
+    );
+
+    const Trash2 = createIcon(
+      <>
+        <path d="M3 6h18" />
+        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+        <line x1="10" x2="10" y1="11" y2="17" />
+        <line x1="14" x2="14" y1="11" y2="17" />
+      </>
+    );
+
+    const Plus = createIcon(
+      <>
+        <path d="M5 12h14" />
+        <path d="M12 5v14" />
+      </>
+    );
+
+    const ArrowUp = createIcon(
+      <>
+        <path d="m5 12 7-7 7 7" />
+        <path d="M12 19V5" />
+      </>
+    );
+
+    const ArrowDown = createIcon(
+      <>
+        <path d="M12 5v14" />
+        <path d="m19 12-7 7-7-7" />
+      </>
+    );
+
+    const Flame = createIcon(
+      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+    );
+
+    const Zap = createIcon(
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    );
+
+    const Heart = createIcon(
+      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+    );
+
+    const Search = createIcon(
+      <>
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+      </>
+    );
+
+    const RotateCcw = createIcon(
+      <>
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+        <path d="M3 3v5h5" />
+      </>
+    );
+
+    const Check = createIcon(
+      <path d="M20 6 9 17l-5-5" />
+    );
+
+    const X = createIcon(
+      <>
+        <path d="M18 6 6 18" />
+        <path d="m6 6 12 12" />
+      </>
+    );
+
+    const BookOpen = createIcon(
+      <>
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+      </>
+    );
+
+    const Share2 = createIcon(
+      <>
+        <circle cx="18" cy="5" r="3" />
+        <circle cx="6" cy="12" r="3" />
+        <circle cx="18" cy="19" r="3" />
+        <line x1="8.59" x2="15.42" y1="13.51" y2="17.49" />
+        <line x1="15.41" x2="8.59" y1="6.51" y2="10.49" />
+      </>
+    );
+
+    const Sword = createIcon(
+      <>
+        <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5" />
+        <line x1="13" x2="19" y1="19" y2="13" />
+        <line x1="16" x2="20" y1="16" y2="20" />
+        <line x1="19" x2="21" y1="21" y2="19" />
+      </>
+    );
+
+    const Sliders = createIcon(
+      <>
+        <line x1="4" x2="4" y1="21" y2="14" />
+        <line x1="4" x2="4" y1="10" y2="3" />
+        <line x1="12" x2="12" y1="21" y2="12" />
+        <line x1="12" x2="12" y1="8" y2="3" />
+        <line x1="20" x2="20" y1="21" y2="16" />
+        <line x1="20" x2="20" y1="12" y2="3" />
+        <line x1="1" x2="7" y1="14" y2="14" />
+        <line x1="9" x2="15" y1="8" y2="8" />
+        <line x1="17" x2="23" y1="16" y2="16" />
+      </>
+    );
+
+    // 대표 유명 웹툰 프리셋 데이터베이스
+    const PRESET_WEBTOONS = {
+      "나 혼자만 레벨업": {
+        genre: "현대 판타지 / 헌터 액션",
+        worldSetting: "세계 각지에 마물이 나오는 '게이트'와 마력을 각성한 '헌터'들이 공존하는 현대 세계. 하급 E급 헌터에게만 유일하게 시스템 창이 보이며 무한 성장이 가능해짐.",
+        characterName: "성진우 (그림자 군주)",
+        characterRole: "주인공 / 그림자 군주",
+        combatPower: 99999,
+        combatTier: "EX (군주급 / 행성 붕괴급)",
+        stats: { attack: 99, defense: 95, speed: 99, mana: 100, intellect: 92 },
+        background: "E급 최약체 헌터였으나 카르테논 신전의 이중 던전에서 죽음을 앞두고 '시스템'의 플레이어로 간택되어 독자적인 레벨업 권능과 그림자 추출 능력을 얻고 세계의 멸망을 막아서는 유일무이한 그림자 군주로 각성함.",
+        themeColor: "from-purple-900 to-indigo-950",
+        badgeColor: "bg-purple-600",
+        defaultReason: "최약체에서 최강자로 거듭나는 카타르시스와 역대급 작화 퀄리티, 그림자 군단을 소환할 때 '일어나라' 대사의 전율 때문에 입덕함!"
+      },
+      "전지적 독자 시점": {
+        genre: "아포칼립스 / 어반 판타지",
+        worldSetting: "멸망해버린 소설 '멸살법'의 현실화. 도깨비들이 주관하는 성좌 후원형 스타 스트림 생중계 시나리오 속에서 생존과 진실을 찾아 나아가는 세계.",
+        characterName: "유중혁 (패왕)",
+        characterRole: "소설 속 주인공 / 회귀자",
+        combatPower: 88500,
+        combatTier: "SSS+ (신화급 도전자)",
+        stats: { attack: 96, defense: 92, speed: 94, mana: 88, intellect: 84 },
+        background: "수백 번의 삶을 회귀하며 멸망을 막기 위해 고독하게 칼을 갈아온 패왕. 주인공 김독자의 개입으로 이전 회차와 전혀 다른 변수와 결말을 마주하게 됨.",
+        themeColor: "from-blue-900 to-slate-950",
+        badgeColor: "bg-blue-600",
+        defaultReason: "탄탄한 성좌 메타포와 독자와 주인공의 애증 관계, 방대한 복선 회수가 소름 돋아서 끝까지 몰입해서 본 인생작."
+      },
+      "화산귀환": {
+        genre: "신무협 / 환생",
+        worldSetting: "십만대산에서 천마를 참살하고 전멸한 화산파. 백 년의 세월이 흐른 뒤 망해버린 화산파의 후예들을 다시 천하제일문파로 재건하는 도문(道門) 무림 세계관.",
+        characterName: "청명 (매화검존 / 화산신룡)",
+        characterRole: "화산파 23대 제자 (전생 화산 매화검존)",
+        combatPower: 92000,
+        combatTier: "SSS (초절정 천하제일검)",
+        stats: { attack: 98, defense: 89, speed: 97, mana: 94, intellect: 90 },
+        background: "천마의 목을 베고 산화했던 화산의 대장로 매화검존이 아이의 몸으로 환생. 쓰러져가는 화산을 특유의 괴팍함과 압도적인 검술 실력으로 멱살 잡고 캐리함.",
+        themeColor: "from-rose-900 to-stone-950",
+        badgeColor: "bg-rose-600",
+        defaultReason: "통쾌하고 매력적인 청명이의 참교육 액션과 화산의 사형제들이 성장하는 끈끈한 서사가 눈물샘을 자극함!"
+      },
+      "신의 탑": {
+        genre: "판타지 / 하이 어드벤처",
+        worldSetting: "원하는 모든 것이 있다는 거대한 미지의 탑. 신수를 다루는 선별인원들이 시험의 층을 오르며 랭커가 되기 위해 치열한 암투와 규칙 속 경쟁을 펼침.",
+        characterName: "스물다섯번째 밤 (비선별인원)",
+        characterRole: "주인공 / 슬레이어 후보 쥬 비올레 그레이스",
+        combatPower: 89000,
+        combatTier: "SS+ (하이랭커 상위권 잠재력)",
+        stats: { attack: 93, defense: 86, speed: 90, mana: 99, intellect: 85 },
+        background: "자신의 전부였던 소녀 라헬을 쫓아 탑의 문을 스스로 열고 들어온 소년. 압도적인 신수 친화력과 카피 능력을 지녔으며 수많은 배신 속에서도 동료를 지키고자 함.",
+        themeColor: "from-amber-900 to-stone-950",
+        badgeColor: "bg-amber-600",
+        defaultReason: "방대한 층별 세계관과 매력적인 조연 캐릭터들, 신수라는 독특한 능력 체계가 주는 지적 쾌감이 최고."
+      },
+      "외모지상주의": {
+        genre: "학원 액션 / 느와르",
+        worldSetting: "외모로 차별받던 고등학생에게 주어진 완벽한 두 번째 육체. 강북, 강서, 강남, 강동 4대 크루와 폭력 조직들의 이권 다툼이 얽힌 어두운 뒷골목 현대 활극.",
+        characterName: "박형석 (종건의 수제자)",
+        characterRole: "주인공 / 2개의 몸 보유자",
+        combatPower: 76000,
+        combatTier: "S+ (1세대 마이너 왕급 돌파)",
+        stats: { attack: 88, defense: 84, speed: 91, mana: 40, intellect: 82 },
+        background: "못생기고 왜소해 괴롭힘을 당하다가 잠들면 깨어나는 미남 체질의 완벽한 육체를 얻음. 복싱, 극진가라테, 시스테마 등 다양한 무술을 카피하며 성장함.",
+        themeColor: "from-zinc-800 to-stone-950",
+        badgeColor: "bg-zinc-600",
+        defaultReason: "초반의 외모 비판 메시지부터 후반부 4대 크루 액션물의 도파민 터지는 격투 씬 때문에 매주 목요일 밤에 무조건 봄."
+      },
+      "더 복서": {
+        genre: "스포츠 / 액션 드라마",
+        worldSetting: "천재 트레이너 K의 손에 발굴된 전설의 복서들. 링 위에서 펼쳐지는 삶의 무게와 순수한 재능, 폭력의 본질에 대한 탐구.",
+        characterName: "유 (THE MONSTER)",
+        characterRole: "주인공 / 무패의 세계 챔피언",
+        combatPower: 84000,
+        combatTier: "SS (인간 규격 외의 복싱 괴물)",
+        stats: { attack: 96, defense: 80, speed: 100, mana: 20, intellect: 88 },
+        background: "어린 시절의 학대로 감정을 잃어버렸으나 압도적인 체감 시간 왜곡과 반사신경을 보유한 천재. 상처뿐인 세상에서 빛을 찾아 링에 오른다.",
+        themeColor: "from-cyan-900 to-blue-950",
+        badgeColor: "bg-cyan-600",
+        defaultReason: "스포츠 만화를 넘어선 철학적인 주제 의식과 상대를 숨도 못 쉬게 몰아붙이는 압도적인 연출력이 압권."
+      },
+      "광마회귀": {
+        genre: "무협 / 블랙코미디",
+        worldSetting: "천옥을 훔쳐 먹고 절벽에서 떨어진 광마 이자하. 점소이 시절로 회귀하여 하오문을 창건하고 미치광이의 신념으로 강호를 정리하는 이야기.",
+        characterName: "이자하 (광마 / 하오문주)",
+        characterRole: "주인공 / 미친 무림인",
+        combatPower: 87500,
+        combatTier: "SS (광기 서린 천하제일 문주)",
+        stats: { attack: 94, defense: 88, speed: 95, mana: 91, intellect: 93 },
+        background: "독기 어린 입담과 종잡을 수 없는 기행으로 적과 아군을 혼란에 빠뜨리며, 바닥 인생들의 연대와 억울함 없는 세상을 만들기 위해 검을 휘두른다.",
+        themeColor: "from-emerald-900 to-teal-950",
+        badgeColor: "bg-emerald-600",
+        defaultReason: "유쾌한 헛소리 속에 뼈가 있는 명대사들과 어디로 튈지 모르는 광마의 시원시원한 행보가 너무 중독적임."
+      }
+    };
+
+    // 임의의 웹툰 제목 입력 시 그럴듯한 설정과 전투력을 생성하는 알고리즘
+    function generateSmartWebtoonData(title) {
+      let hash = 0;
+      for (let i = 0; i < title.length; i++) {
+        hash = (hash << 5) - hash + title.charCodeAt(i);
+        hash |= 0;
+      }
+      const absHash = Math.abs(hash);
+
+      const genres = [
+        "어반 판타지 액션", "다크 아포칼립스", "퓨전 무협 판타지", 
+        "사이버펑크 레이드", "차원 침공 / 헌터물", "초능력 이능 배틀", "환생 복수극"
+      ];
+      const roles = ["주인공 / 각성자", "세계선 수호자", "그림자 암살자", "원탑 능력자", "최연소 절대자"];
+      const tiers = ["S+", "SS", "SS+", "SSS", "EX (규격 외)"];
+      
+      const selectedGenre = genres[absHash % genres.length];
+      const selectedRole = roles[(absHash >> 2) % roles.length];
+      const selectedTier = tiers[(absHash >> 3) % tiers.length];
+      
+      const basePower = 50000 + (absHash % 49000);
+      const atk = 70 + (absHash % 29);
+      const def = 65 + ((absHash >> 1) % 33);
+      const spd = 72 + ((absHash >> 2) % 27);
+      const mana = 60 + ((absHash >> 3) % 39);
+      const intel = 75 + ((absHash >> 4) % 24);
+
+      const colors = [
+        "from-purple-900 to-slate-950",
+        "from-rose-900 to-slate-950",
+        "from-blue-900 to-slate-950",
+        "from-amber-900 to-slate-950",
+        "from-emerald-900 to-slate-950",
+        "from-indigo-900 to-slate-950"
+      ];
+      const badgeColors = [
+        "bg-purple-600", "bg-rose-600", "bg-blue-600", 
+        "bg-amber-600", "bg-emerald-600", "bg-indigo-600"
+      ];
+
+      return {
+        genre: selectedGenre,
+        worldSetting: `[${title}]의 고유한 법칙이 지배하는 세계. 예측할 수 없는 위기와 세력 간의 충돌 속에서 숨겨진 시스템과 고대의 힘이 각성하여 전장을 뒤흔드는 무대.`,
+        characterName: `${title}의 핵심 주역`,
+        characterRole: selectedRole,
+        combatPower: basePower,
+        combatTier: `${selectedTier} (측정 불가 전투력)`,
+        stats: { attack: atk, defense: def, speed: spd, mana: mana, intellect: intel },
+        background: `오랜 시련과 각성의 계기를 거쳐 한계를 돌파한 인물. 독보적인 기술 체계와 전략적인 판단력으로 전세를 단숨에 뒤집는 결정적 전투력을 보유하고 있음.`,
+        themeColor: colors[absHash % colors.length],
+        badgeColor: badgeColors[absHash % badgeColors.length],
+        defaultReason: `스토리 전개의 신선함과 주인공의 폭발적인 성장 및 카타르시스가 인상 깊어 추천 목록에 올림!`
+      };
+    }
+
+    function App() {
+      const [webtoons, setWebtoons] = useState(() => {
+        try {
+          const saved = localStorage.getItem('my_top5_webtoons');
+          if (saved) return JSON.parse(saved);
+        } catch (e) {
+          console.error(e);
+        }
+        const defaults = ["나 혼자만 레벨업", "전지적 독자 시점", "화산귀환"].map((title, idx) => {
+          const preset = PRESET_WEBTOONS[title];
+          return {
+            id: `wt-${Date.now()}-${idx}`,
+            rank: idx + 1,
+            title: title,
+            reason: preset.defaultReason,
+            ...preset
+          };
+        });
+        return defaults;
+      });
+
+      const [searchTitle, setSearchTitle] = useState('');
+      const [selectedPresetKey, setSelectedPresetKey] = useState('');
+      const [userReasonInput, setUserReasonInput] = useState('');
+      const [editingItem, setEditingItem] = useState(null);
+      const [editForm, setEditForm] = useState(null);
+      const [toastMessage, setToastMessage] = useState(null);
+
+      useEffect(() => {
+        try {
+          localStorage.setItem('my_top5_webtoons', JSON.stringify(webtoons));
+        } catch (e) {
+          console.error(e);
+        }
+      }, [webtoons]);
+
+      const showToast = (msg) => {
+        setToastMessage(msg);
+        setTimeout(() => {
+          setToastMessage(null);
+        }, 3000);
+      };
+
+      const handleAddWebtoon = (e) => {
+        e.preventDefault();
+        const title = (searchTitle || selectedPresetKey).trim();
+        if (!title) {
+          showToast("웹툰 제목을 입력하거나 프리셋을 선택해 주세요!");
+          return;
+        }
+
+        if (webtoons.length >= 5) {
+          showToast("인생 웹툰은 최대 Top 5까지만 등록할 수 있습니다. 기존 항목을 교체해 주세요!");
+          return;
+        }
+
+        if (webtoons.some(w => w.title.toLowerCase() === title.toLowerCase())) {
+          showToast("이미 순위에 등록된 웹툰입니다!");
+          return;
+        }
+
+        let baseData = PRESET_WEBTOONS[title];
+        if (!baseData) {
+          baseData = generateSmartWebtoonData(title);
+        }
+
+        const newItem = {
+          id: `wt-${Date.now()}`,
+          rank: webtoons.length + 1,
+          title: title,
+          reason: userReasonInput.trim() || baseData.defaultReason,
+          ...baseData
+        };
+
+        setWebtoons([...webtoons, newItem]);
+        setSearchTitle('');
+        setSelectedPresetKey('');
+        setUserReasonInput('');
+        showToast(`'${title}'이(가) Top ${webtoons.length + 1}에 추가되었습니다!`);
+      };
+
+      const moveRank = (index, direction) => {
+        const targetIndex = index + direction;
+        if (targetIndex < 0 || targetIndex >= webtoons.length) return;
+
+        const updated = [...webtoons];
+        const temp = updated[index];
+        updated[index] = updated[targetIndex];
+        updated[targetIndex] = temp;
+
+        const reordered = updated.map((item, idx) => ({
+          ...item,
+          rank: idx + 1
+        }));
+
+        setWebtoons(reordered);
+        showToast(`순위가 변경되었습니다.`);
+      };
+
+      const handleDelete = (id) => {
+        const filtered = webtoons.filter(w => w.id !== id);
+        const reordered = filtered.map((item, idx) => ({
+          ...item,
+          rank: idx + 1
+        }));
+        setWebtoons(reordered);
+        showToast("웹툰이 목록에서 제거되었습니다.");
+      };
+
+      const handleOpenEdit = (item) => {
+        setEditingItem(item);
+        setEditForm({ ...item, stats: { ...item.stats } });
+      };
+
+      const handleSaveEdit = () => {
+        if (!editForm) return;
+        const updated = webtoons.map(w => (w.id === editForm.id ? editForm : w));
+        setWebtoons(updated);
+        setEditingItem(null);
+        setEditForm(null);
+        showToast("웹툰 정보가 성공적으로 수정되었습니다.");
+      };
+
+      const handleSelectPreset = (key) => {
+        setSelectedPresetKey(key);
+        setSearchTitle(key);
+        if (PRESET_WEBTOONS[key]) {
+          setUserReasonInput(PRESET_WEBTOONS[key].defaultReason);
+        }
+      };
+
+      const handleResetDefaults = () => {
+        if (confirm("목록을 기본 Top 3 웹툰으로 초기화하시겠습니까?")) {
+          const defaults = ["나 혼자만 레벨업", "전지적 독자 시점", "화산귀환"].map((title, idx) => {
+            const preset = PRESET_WEBTOONS[title];
+            return {
+              id: `wt-${Date.now()}-${idx}`,
+              rank: idx + 1,
+              title: title,
+              reason: preset.defaultReason,
+              ...preset
+            };
+          });
+          setWebtoons(defaults);
+          showToast("기본 목록으로 초기화되었습니다.");
+        }
+      };
+
+      // 아이폰 iOS 네이티브 공유 시트 및 클립보드 호환 공유 기능
+      const handleShare = async () => {
+        const summary = webtoons.map(w => `${w.rank}위: ${w.title} (${w.genre}) - CP: ${w.combatPower.toLocaleString()} CP\n입덕 이유: ${w.reason}`).join('\n\n');
+        const textToCopy = `🏆 [내 인생 웹툰 TOP 5 연구소 랭킹] 🏆\n\n${summary}\n\n#인생웹툰 #웹툰순위 #웹툰추천`;
+        
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: '내 인생 웹툰 TOP 5 연구소',
+              text: textToCopy
+            });
+            return;
+          } catch (err) {
+            if (err.name === 'AbortError') return;
+          }
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            showToast("순위 정보가 클립보드에 복사되었습니다!");
+          }).catch(() => {
+            fallbackCopyText(textToCopy);
+          });
+        } else {
+          fallbackCopyText(textToCopy);
+        }
+      };
+
+      const fallbackCopyText = (text) => {
+        try {
+          const textArea = document.createElement("textarea");
+          textArea.value = text;
+          textArea.style.position = "fixed";
+          textArea.style.opacity = "0";
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          showToast("순위 정보가 클립보드에 복사되었습니다!");
+        } catch (err) {
+          showToast("복사에 실패했습니다.");
+        }
+      };
+
+      return (
+        <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans pb-16 selection:bg-purple-600 selection:text-white">
+          {/* 토스트 알림창 */}
+          {toastMessage && (
+            <div className="fixed top-12 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-sm bg-neutral-900/95 border border-purple-500/60 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 backdrop-blur-md">
+              <Sparkles className="w-5 h-5 text-purple-400 shrink-0" />
+              <span className="text-xs sm:text-sm font-semibold">{toastMessage}</span>
+            </div>
+          )}
+
+          {/* 헤더 섹션 (iOS 상단 노치 대응) */}
+          <header className="border-b border-neutral-800 bg-neutral-900/80 backdrop-blur-md sticky top-0 z-30 ios-safe-header">
+            <div className="max-w-6xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-gradient-to-tr from-purple-600 to-indigo-600 rounded-xl shadow-lg shadow-purple-900/30">
+                    <Trophy className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-lg sm:text-xl font-bold tracking-tight bg-gradient-to-r from-white via-purple-200 to-purple-400 bg-clip-text text-transparent">
+                      내 인생 웹툰 TOP 5 연구소
+                    </h1>
+                    <p className="text-[11px] text-neutral-400">
+                      세계관 설정, 전투력 스탯 & 입덕 사유 아카이빙
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between sm:justify-end space-x-2 w-full sm:w-auto">
+                <div className="flex items-center space-x-1.5 text-xs bg-neutral-800/80 px-3 py-1.5 rounded-full border border-neutral-700">
+                  <span className="text-neutral-400">등록 현황:</span>
+                  <span className="font-bold text-purple-400">{webtoons.length} / 5</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handleShare}
+                    title="내 TOP 5 순위 공유하기"
+                    className="flex items-center space-x-1.5 text-xs bg-neutral-800 active:bg-neutral-700 text-neutral-200 px-3.5 py-1.5 rounded-full border border-neutral-700 transition"
+                  >
+                    <Share2 className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>공유하기</span>
+                  </button>
+                  <button
+                    onClick={handleResetDefaults}
+                    title="기본값으로 초기화"
+                    className="p-2 bg-neutral-800 active:bg-neutral-700 text-neutral-400 hover:text-white rounded-full border border-neutral-700 transition"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <main className="max-w-6xl mx-auto px-4 pt-6">
+            {/* 등록 및 자동완성 폼 */}
+            <section className="bg-neutral-900/90 border border-neutral-800 rounded-2xl p-4 sm:p-6 mb-6 shadow-xl">
+              <div className="flex items-center space-x-2 mb-3">
+                <Sparkles className="w-5 h-5 text-purple-400 shrink-0" />
+                <h2 className="text-sm sm:text-base font-semibold text-neutral-200">
+                  웹툰 추가하기 (제목을 넣으면 설정 및 전투력이 자동 분석됩니다)
+                </h2>
+              </div>
+
+              {/* 인기 웹툰 빠른 선택 버튼 */}
+              <div className="mb-4">
+                <label className="text-xs text-neutral-400 block mb-2 font-medium">
+                  인기 추천 웹툰 빠른 터치:
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {Object.keys(PRESET_WEBTOONS).map((title) => (
+                    <button
+                      key={title}
+                      type="button"
+                      onClick={() => handleSelectPreset(title)}
+                      className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${
+                        searchTitle === title
+                          ? 'bg-purple-600 border-purple-500 text-white font-semibold shadow-md shadow-purple-900/40'
+                          : 'bg-neutral-800 border-neutral-700 text-neutral-300 active:bg-neutral-700'
+                      }`}
+                    >
+                      {title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <form onSubmit={handleAddWebtoon} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="md:col-span-1">
+                    <label className="text-xs text-neutral-400 block mb-1 font-medium">웹툰 제목</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={searchTitle}
+                        onChange={(e) => setSearchTitle(e.target.value)}
+                        placeholder="예: 화산귀환, 갓 오브 하이스쿨..."
+                        className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition"
+                      />
+                      <Search className="w-4 h-4 text-neutral-500 absolute right-3 top-3.5" />
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="text-xs text-neutral-400 block mb-1 font-medium">
+                      내가 이 웹툰에 입덕한 이유 / 추천 코멘트 (선택사항)
+                    </label>
+                    <input
+                      type="text"
+                      value={userReasonInput}
+                      onChange={(e) => setUserReasonInput(e.target.value)}
+                      placeholder="예: 압도적인 작화와 사이다 액션! (미입력 시 자동 생성)"
+                      className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="submit"
+                    disabled={webtoons.length >= 5}
+                    className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-gradient-to-r from-purple-600 to-indigo-600 active:from-purple-500 active:to-indigo-500 disabled:opacity-50 text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-lg transition-all cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Top {webtoons.length < 5 ? webtoons.length + 1 : 5} 등록하기</span>
+                  </button>
+                </div>
+              </form>
+            </section>
+
+            {/* 등록된 웹툰 목록 리스트 */}
+            <div className="space-y-5">
+              {webtoons.length === 0 ? (
+                <div className="text-center py-16 bg-neutral-900/40 border border-dashed border-neutral-800 rounded-2xl">
+                  <BookOpen className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
+                  <p className="text-neutral-400 text-sm">아직 등록된 웹툰이 없습니다.</p>
+                  <p className="text-neutral-500 text-xs mt-1">위의 폼에서 인생 웹툰을 등록해 보세요!</p>
+                </div>
+              ) : (
+                webtoons.map((item, index) => (
+                  <div 
+                    key={item.id}
+                    className="relative bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden transition-all shadow-xl"
+                  >
+                    <div className={`h-1.5 w-full bg-gradient-to-r ${item.themeColor || 'from-purple-600 to-indigo-600'}`} />
+                    
+                    <div className="p-4 sm:p-6">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4 mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className={`flex items-center justify-center w-9 h-9 rounded-xl font-black text-sm text-white shadow-md shrink-0 ${
+                            item.rank === 1 ? 'bg-amber-500 ring-2 ring-amber-400/50' : 
+                            item.rank === 2 ? 'bg-slate-400' : 
+                            item.rank === 3 ? 'bg-amber-700' : 'bg-neutral-800 border border-neutral-700'
+                          }`}>
+                            #{item.rank}
+                          </div>
+
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="text-lg sm:text-xl font-bold text-white tracking-wide">
+                                {item.title}
+                              </h3>
+                              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-neutral-800 text-purple-300 border border-purple-900/50">
+                                {item.genre}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-1.5 self-end sm:self-auto">
+                          <button
+                            onClick={() => moveRank(index, -1)}
+                            disabled={index === 0}
+                            title="순위 올리기"
+                            className="p-2 text-neutral-400 active:text-white disabled:opacity-30 bg-neutral-800/60 rounded-lg transition"
+                          >
+                            <ArrowUp className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => moveRank(index, 1)}
+                            disabled={index === webtoons.length - 1}
+                            title="순위 내리기"
+                            className="p-2 text-neutral-400 active:text-white disabled:opacity-30 bg-neutral-800/60 rounded-lg transition"
+                          >
+                            <ArrowDown className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleOpenEdit(item)}
+                            title="정보 및 입덕 사유 수정"
+                            className="flex items-center space-x-1 text-xs px-3 py-2 bg-neutral-800 active:bg-neutral-700 text-neutral-200 rounded-lg border border-neutral-700 transition ml-1"
+                          >
+                            <Edit3 className="w-3.5 h-3.5 text-purple-400" />
+                            <span>수정</span>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            title="삭제"
+                            className="p-2 text-neutral-400 active:text-rose-400 bg-neutral-800/60 rounded-lg transition"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                        <div className="lg:col-span-7 space-y-3.5">
+                          <div className="bg-purple-950/20 border border-purple-900/30 rounded-xl p-3.5">
+                            <div className="flex items-center space-x-2 text-purple-400 text-xs font-bold mb-1.5 uppercase tracking-wider">
+                              <Heart className="w-4 h-4 fill-purple-400/20 text-purple-400" />
+                              <span>내가 이 웹툰에 입덕한 이유</span>
+                            </div>
+                            <p className="text-neutral-200 text-sm leading-relaxed whitespace-pre-wrap">
+                              {item.reason}
+                            </p>
+                          </div>
+
+                          <div>
+                            <div className="flex items-center space-x-1.5 text-neutral-400 text-xs font-semibold mb-1">
+                              <BookOpen className="w-3.5 h-3.5 text-neutral-400" />
+                              <span>세계관 설정</span>
+                            </div>
+                            <p className="text-neutral-300 text-xs sm:text-sm leading-relaxed bg-neutral-950/60 p-3 rounded-xl border border-neutral-800/80">
+                              {item.worldSetting}
+                            </p>
+                          </div>
+
+                          <div>
+                            <div className="flex items-center space-x-1.5 text-neutral-400 text-xs font-semibold mb-1">
+                              <Zap className="w-3.5 h-3.5 text-amber-400" />
+                              <span>스토리 배경 & 핵심 서사</span>
+                            </div>
+                            <p className="text-neutral-400 text-xs leading-relaxed bg-neutral-950/40 p-3 rounded-xl border border-neutral-800/50">
+                              {item.background}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="lg:col-span-5 bg-neutral-950/70 border border-neutral-800 rounded-xl p-4 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between mb-3 border-b border-neutral-800/60 pb-2">
+                              <div className="flex items-center space-x-2">
+                                <Sword className="w-4 h-4 text-rose-500" />
+                                <span className="text-xs font-bold text-neutral-300">대표 인물 & 전투력 분석</span>
+                              </div>
+                              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-rose-950/50 text-rose-300 border border-rose-900/40">
+                                {item.combatTier}
+                              </span>
+                            </div>
+
+                            <div className="mb-4">
+                              <div className="text-sm font-bold text-white flex items-center justify-between">
+                                <span>{item.characterName}</span>
+                                <span className="text-xs font-normal text-neutral-400">{item.characterRole}</span>
+                              </div>
+                              
+                              <div className="mt-2 bg-neutral-900 p-2.5 rounded-lg border border-neutral-800">
+                                <div className="flex justify-between items-center text-xs mb-1">
+                                  <span className="text-neutral-400 flex items-center gap-1">
+                                    <Flame className="w-3.5 h-3.5 text-amber-500" /> 종합 전투력 지수
+                                  </span>
+                                  <span className="font-mono font-bold text-amber-400 text-sm">
+                                    {item.combatPower.toLocaleString()} CP
+                                  </span>
+                                </div>
+                                <div className="w-full bg-neutral-800 h-2 rounded-full overflow-hidden">
+                                  <div 
+                                    className="bg-gradient-to-r from-amber-500 to-rose-500 h-full rounded-full transition-all duration-500" 
+                                    style={{ width: `${Math.min(100, Math.max(10, (item.combatPower / 100000) * 100))}%` }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2 pt-1 text-xs">
+                              <div>
+                                <div className="flex justify-between text-[11px] text-neutral-400 mb-0.5">
+                                  <span>공격력 (ATK)</span>
+                                  <span className="font-mono text-neutral-200">{item.stats?.attack || 80}/100</span>
+                                </div>
+                                <div className="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
+                                  <div className="bg-rose-500 h-full" style={{ width: `${item.stats?.attack || 80}%` }} />
+                                </div>
+                              </div>
+
+                              <div>
+                                <div className="flex justify-between text-[11px] text-neutral-400 mb-0.5">
+                                  <span>방어 / 생존 (DEF)</span>
+                                  <span className="font-mono text-neutral-200">{item.stats?.defense || 80}/100</span>
+                                </div>
+                                <div className="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
+                                  <div className="bg-blue-500 h-full" style={{ width: `${item.stats?.defense || 80}%` }} />
+                                </div>
+                              </div>
+
+                              <div>
+                                <div className="flex justify-between text-[11px] text-neutral-400 mb-0.5">
+                                  <span>스피드 / 기동 (SPD)</span>
+                                  <span className="font-mono text-neutral-200">{item.stats?.speed || 80}/100</span>
+                                </div>
+                                <div className="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
+                                  <div className="bg-emerald-500 h-full" style={{ width: `${item.stats?.speed || 80}%` }} />
+                                </div>
+                              </div>
+
+                              <div>
+                                <div className="flex justify-between text-[11px] text-neutral-400 mb-0.5">
+                                  <span>마력 / 신수 / 내공</span>
+                                  <span className="font-mono text-neutral-200">{item.stats?.mana || 80}/100</span>
+                                </div>
+                                <div className="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
+                                  <div className="bg-purple-500 h-full" style={{ width: `${item.stats?.mana || 80}%` }} />
+                                </div>
+                              </div>
+
+                              <div>
+                                <div className="flex justify-between text-[11px] text-neutral-400 mb-0.5">
+                                  <span>지능 / 전술 (INT)</span>
+                                  <span className="font-mono text-neutral-200">{item.stats?.intellect || 80}/100</span>
+                                </div>
+                                <div className="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
+                                  <div className="bg-yellow-500 h-full" style={{ width: `${item.stats?.intellect || 80}%` }} />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 pt-3 border-t border-neutral-800/80 flex justify-between items-center text-[11px] text-neutral-500">
+                            <span>전투 분석 완료</span>
+                            <button 
+                              type="button"
+                              className="text-purple-400 font-semibold active:underline cursor-pointer" 
+                              onClick={() => handleOpenEdit(item)}
+                            >
+                              스탯 직접 보정하기 →
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </main>
+
+          {/* 편집 팝업 모달 */}
+          {editingItem && editForm && (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-neutral-900 border border-neutral-700 w-full max-w-2xl rounded-2xl shadow-2xl p-5 sm:p-6 relative max-h-[88vh] overflow-y-auto">
+                <div className="flex items-center justify-between border-b border-neutral-800 pb-3 mb-4">
+                  <div className="flex items-center space-x-2">
+                    <Sliders className="w-5 h-5 text-purple-400" />
+                    <h3 className="font-bold text-base sm:text-lg text-white">
+                      [{editForm.title}] 정보 편집
+                    </h3>
+                  </div>
+                  <button 
+                    onClick={() => setEditingItem(null)} 
+                    className="text-neutral-400 active:text-white p-1.5 rounded-lg bg-neutral-800"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4 text-sm">
+                  <div>
+                    <label className="block text-xs font-semibold text-purple-400 mb-1">
+                      입덕하게 된 계기 / 나의 추천 이유
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={editForm.reason}
+                      onChange={(e) => setEditForm({ ...editForm, reason: e.target.value })}
+                      className="w-full bg-neutral-950 border border-neutral-700 rounded-xl p-3 text-neutral-100 focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                      세계관 설정
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={editForm.worldSetting}
+                      onChange={(e) => setEditForm({ ...editForm, worldSetting: e.target.value })}
+                      className="w-full bg-neutral-950 border border-neutral-700 rounded-xl p-3 text-neutral-100 focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                      배경 스토리 & 서사
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={editForm.background}
+                      onChange={(e) => setEditForm({ ...editForm, background: e.target.value })}
+                      className="w-full bg-neutral-950 border border-neutral-700 rounded-xl p-3 text-neutral-100 focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                        대표 캐릭터 이름
+                      </label>
+                      <input
+                        type="text"
+                        value={editForm.characterName}
+                        onChange={(e) => setEditForm({ ...editForm, characterName: e.target.value })}
+                        className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3 py-2 text-neutral-100 focus:outline-none focus:border-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                        캐릭터 역할/이명
+                      </label>
+                      <input
+                        type="text"
+                        value={editForm.characterRole}
+                        onChange={(e) => setEditForm({ ...editForm, characterRole: e.target.value })}
+                        className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3 py-2 text-neutral-100 focus:outline-none focus:border-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                        전투력 등급 (티어)
+                      </label>
+                      <input
+                        type="text"
+                        value={editForm.combatTier}
+                        onChange={(e) => setEditForm({ ...editForm, combatTier: e.target.value })}
+                        className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3 py-2 text-neutral-100 focus:outline-none focus:border-purple-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-xs font-semibold text-neutral-300">
+                        종합 전투력 (CP)
+                      </label>
+                      <span className="font-mono text-amber-400 font-bold">
+                        {Number(editForm.combatPower).toLocaleString()} CP
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1000"
+                      max="100000"
+                      step="500"
+                      value={editForm.combatPower}
+                      onChange={(e) => setEditForm({ ...editForm, combatPower: Number(e.target.value) })}
+                      className="w-full accent-purple-500 cursor-pointer"
+                    />
+                  </div>
+
+                  <div className="bg-neutral-950 p-3 rounded-xl border border-neutral-800 space-y-3">
+                    <span className="text-xs font-bold text-neutral-400 block mb-1">스탯 직접 조절 (0~100)</span>
+                    
+                    {['attack', 'defense', 'speed', 'mana', 'intellect'].map((statKey) => {
+                      const labels = {
+                        attack: '공격력', defense: '방어력', speed: '스피드', mana: '마력/내공', intellect: '지능/전술'
+                      };
+                      return (
+                        <div key={statKey} className="flex items-center space-x-3 text-xs">
+                          <span className="w-20 text-neutral-400">{labels[statKey]}</span>
+                          <input
+                            type="range"
+                            min="1"
+                            max="100"
+                            value={editForm.stats?.[statKey] || 70}
+                            onChange={(e) => setEditForm({
+                              ...editForm,
+                              stats: {
+                                ...editForm.stats,
+                                [statKey]: Number(e.target.value)
+                              }
+                            })}
+                            className="flex-1 accent-purple-500 cursor-pointer"
+                          />
+                          <span className="font-mono w-8 text-right text-neutral-200">
+                            {editForm.stats?.[statKey] || 70}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-2 pt-5 border-t border-neutral-800 mt-5">
+                  <button
+                    type="button"
+                    onClick={() => setEditingItem(null)}
+                    className="px-4 py-2.5 rounded-xl bg-neutral-800 active:bg-neutral-700 text-neutral-300 text-xs font-semibold transition"
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveEdit}
+                    className="px-5 py-2.5 rounded-xl bg-purple-600 active:bg-purple-500 text-white text-xs font-semibold flex items-center space-x-1.5 shadow-lg shadow-purple-900/40 transition"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>저장하기</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
